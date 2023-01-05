@@ -187,6 +187,13 @@ public class CraftEnchantment extends Enchantment {
         return !target.isCompatibleWith(ench.target);
     }
 
+    // Paper start
+    @Override
+    public net.kyori.adventure.text.Component displayName(int level) {
+        return io.papermc.paper.adventure.PaperAdventure.asAdventure(getHandle().getFullname(level));
+    }
+    // Paper end
+
     public net.minecraft.world.item.enchantment.Enchantment getHandle() {
         return target;
     }

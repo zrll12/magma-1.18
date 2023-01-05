@@ -213,7 +213,7 @@
 +         if (PlayerPreLoginEvent.getHandlerList().getRegisteredListeners().length != 0) {
 +            final PlayerPreLoginEvent event = new PlayerPreLoginEvent(playerName, address, uniqueId);
 +            if (asyncEvent.getResult() != PlayerPreLoginEvent.Result.ALLOWED) {
-+               event.disallow(asyncEvent.getResult(), asyncEvent.getKickMessage());
++               event.disallow(asyncEvent.getResult(), asyncEvent.kickMessage()); // Paper - Adventure
 +            }
 +            Waitable<PlayerPreLoginEvent.Result> waitable = new Waitable<PlayerPreLoginEvent.Result>() {
 +               @Override
@@ -224,12 +224,12 @@
 +
 +            ServerLoginPacketListenerImpl.this.f_10018_.processQueue.add(waitable);
 +            if (waitable.get() != PlayerPreLoginEvent.Result.ALLOWED) {
-+               disconnect(event.getKickMessage());
++               ServerLoginPacketListenerImpl.this.m_10053_(io.papermc.paper.adventure.PaperAdventure.asVanilla(event.kickMessage())); // Paper - Adventure
 +               return;
 +            }
 +         } else {
 +            if (asyncEvent.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-+               disconnect(asyncEvent.getKickMessage());
++               ServerLoginPacketListenerImpl.this.m_10053_(io.papermc.paper.adventure.PaperAdventure.asVanilla(asyncEvent.kickMessage())); // Paper - Adventure
 +               return;
 +            }
 +         }

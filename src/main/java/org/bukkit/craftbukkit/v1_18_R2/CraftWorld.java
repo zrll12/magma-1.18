@@ -93,6 +93,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
     private final BlockMetadataStore blockMetadata = new BlockMetadataStore(this);
     private final Object2IntOpenHashMap<SpawnCategory> spawnCategoryLimit = new Object2IntOpenHashMap<>();
     private final CraftPersistentDataContainer persistentDataContainer = new CraftPersistentDataContainer(DATA_TYPE_REGISTRY);
+    private net.kyori.adventure.pointer.Pointers adventure$pointers; // Paper - implement pointers
 
     private static final Random rand = new Random();
 
@@ -1833,4 +1834,17 @@ public class CraftWorld extends CraftRegionAccessor implements World {
         return spigot;
     }
     // Spigot end
+
+    // Paper start - implement pointers
+    @Override
+    public net.kyori.adventure.pointer.Pointers pointers() {
+        if (this.adventure$pointers == null) {
+            this.adventure$pointers = net.kyori.adventure.pointer.Pointers.builder()
+                    .withDynamic(net.kyori.adventure.identity.Identity.NAME, this::getName)
+                    .withDynamic(net.kyori.adventure.identity.Identity.UUID, this::getUID)
+                    .build();
+        }
+        return this.adventure$pointers;
+    }
+    // Paper end
 }

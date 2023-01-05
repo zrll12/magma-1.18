@@ -315,6 +315,7 @@ public class MagmaInstaller extends AbstractMagmaInstaller {
             standardRepositories.add(new StandardRepository("https://repo1.maven.org/maven2/"));
             standardRepositories.add(new StandardRepository("https://raw.github.com/Hexeption/Magma-Repo/master/"));
             standardRepositories.add(new StandardRepository("https://maven.izzel.io/releases/"));
+            standardRepositories.add(new StandardRepository("https://papermc.io/repo/repository/maven-public/"));
 
             List<Dependency> dependencies = manager.getDependencies();
 

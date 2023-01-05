@@ -1,14 +1,15 @@
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
-@@ -1,5 +_,7 @@
+@@ -1,5 +_,8 @@
  package net.minecraft.server.players;
  
 +import co.aikar.timings.MinecraftTimings;
++import com.destroystokyo.paper.youcandfindpaper.PaperConfig;
 +import com.google.common.base.Predicate;
  import com.google.common.collect.Lists;
  import com.google.common.collect.Maps;
  import com.google.common.collect.Sets;
-@@ -7,19 +_,7 @@
+@@ -7,19 +_,8 @@
  import com.mojang.logging.LogUtils;
  import com.mojang.serialization.Dynamic;
  import io.netty.buffer.Unpooled;
@@ -23,6 +24,7 @@
 -import java.util.UUID;
 -import java.util.function.Function;
 -import javax.annotation.Nullable;
++import io.papermc.paper.adventure.PaperAdventure;
  import net.minecraft.ChatFormatting;
 -import net.minecraft.FileUtil;
  import net.minecraft.Util;
@@ -199,14 +201,14 @@
        servergamepacketlistenerimpl.m_141995_(new ClientboundUpdateRecipesPacket(this.f_11195_.m_129894_().m_44051_()));
        servergamepacketlistenerimpl.m_141995_(new ClientboundUpdateTagsPacket(TagNetworkSerialization.m_203950_(this.f_11206_)));
        this.m_11289_(p_11263_);
-@@ -175,18 +_,66 @@
+@@ -175,18 +_,65 @@
           mutablecomponent = new TranslatableComponent("multiplayer.player.joined.renamed", p_11263_.m_5446_(), s);
        }
  
 -      this.m_11264_(mutablecomponent.m_130940_(ChatFormatting.YELLOW), ChatType.SYSTEM, Util.f_137441_);
 +      // CraftBukkit start
 +      mutablecomponent.m_130940_(ChatFormatting.YELLOW);
-+      String joinMessage = CraftChatMessage.fromComponent(mutablecomponent);
++      Component joinMessage = mutablecomponent; // Paper - Adventure
 +
        servergamepacketlistenerimpl.m_9774_(p_11263_.m_20185_(), p_11263_.m_20186_(), p_11263_.m_20189_(), p_11263_.m_146908_(), p_11263_.m_146909_());
 -      this.f_11196_.add(p_11263_);
@@ -220,19 +222,18 @@
 +      // Ensure that player inventory is populated with its viewer
 +      p_11263_.f_36096_.transferTo(p_11263_.f_36096_, bukkitPlayer);
 +
-+      PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(bukkitPlayer, joinMessage);
++      PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(bukkitPlayer, PaperAdventure.asAdventure(mutablecomponent)); // Paper - Adventure
 +      cserver.getPluginManager().callEvent(playerJoinEvent);
 +
 +      if (!p_11263_.f_8906_.f_9742_.m_129536_()) {
 +         return;
 +      }
 +
-+      joinMessage = playerJoinEvent.getJoinMessage();
++      final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
 +
-+      if (joinMessage != null && joinMessage.length() > 0) {
-+         for (Component line : org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage.fromString(joinMessage)) {
-+            f_11195_.m_6846_().m_11268_(new ClientboundChatPacket(line, ChatType.SYSTEM, Util.f_137441_));
-+         }
++      if (jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure
++         joinMessage = PaperAdventure.asVanilla(jm); // Paper - Adventure
++         this.f_11195_.m_6846_().m_11268_(new ClientboundChatPacket(joinMessage, ChatType.SYSTEM, Util.f_137441_)); // Paper - Adventure
 +      }
 +      // CraftBukkit end
 +
@@ -356,14 +357,14 @@
  
 +   //Magma start - move to original method
 +   @Nullable
-+   public String removeAndReturn(ServerPlayer thePlayer) {
++   public net.kyori.adventure.text.Component removeAndReturn(ServerPlayer thePlayer) {
 +      m_11286_(thePlayer);
-+      String tmp = remove_quitMsg;
++      net.kyori.adventure.text.Component tmp = remove_quitMsg;
 +      remove_quitMsg = null; //reset
 +      return tmp;
 +   }
 +
-+   public @Nullable String remove_quitMsg = null; //Magma
++   public @Nullable net.kyori.adventure.text.Component remove_quitMsg = null; //Magma
     public void m_11286_(ServerPlayer p_11287_) {
 +      if (remove_quitMsg != null)
 +         remove_quitMsg = null; //reset
@@ -378,7 +379,7 @@
 +         p_11287_.m_6915_();
 +      }
 +
-+      PlayerQuitEvent playerQuitEvent = new PlayerQuitEvent(p_11287_.getBukkitEntity(), p_11287_.kickLeaveMessage != null ? p_11287_.kickLeaveMessage : "\u00A7e" + p_11287_.m_6302_() + " left the game");
++      PlayerQuitEvent playerQuitEvent = new PlayerQuitEvent(p_11287_.getBukkitEntity(), net.kyori.adventure.text.Component.translatable("multiplayer.player.left", net.kyori.adventure.text.format.NamedTextColor.YELLOW, PaperConfig.useDisplayNameInQuit ? p_11287_.getBukkitEntity().displayName() : net.kyori.adventure.text.Component.text(p_11287_.m_6302_())));
 +      cserver.getPluginManager().callEvent(playerQuitEvent);
 +      p_11287_.getBukkitEntity().disconnect(playerQuitEvent.getQuitMessage());
 +
@@ -424,7 +425,7 @@
 +      cserver.getScoreboardManager().removePlayer(p_11287_.getBukkitEntity());
 +      // CraftBukkit end
 +
-+      remove_quitMsg = playerQuitEvent.getQuitMessage(); // CraftBukkit //Magma
++      remove_quitMsg = playerQuitEvent.quitMessage(); // CraftBukkit //Magma // Paper
     }
 +   //Magma end
  
@@ -455,13 +456,13 @@
  
 -         return mutablecomponent1;
 +         // return mutablecomponent1;
-+         event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage));
++         event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Paper - Adventure
        } else if (!this.m_5764_(p_11258_)) {
 -         return new TranslatableComponent("multiplayer.disconnect.not_whitelisted");
 -      } else if (this.f_11199_.m_11041_(p_11257_)) {
 -         IpBanListEntry ipbanlistentry = this.f_11199_.m_11043_(p_11257_);
 +         chatmessage = new TranslatableComponent("multiplayer.disconnect.not_whitelisted");
-+         event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot
++         event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(org.spigotmc.SpigotConfig.whitelistMessage)); // Spigot // Paper - Adventure
 +      } else if (m_11299_().m_11041_(socketaddress) && !m_11299_().m_11043_(socketaddress).m_7524_()) {
 +         IpBanListEntry ipbanlistentry = this.f_11199_.m_11043_(socketaddress);
           MutableComponent mutablecomponent = new TranslatableComponent("multiplayer.disconnect.banned_ip.reason", ipbanlistentry.m_10962_());
@@ -471,7 +472,7 @@
  
 -         return mutablecomponent;
 +         // return mutablecomponent;
-+         event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(mutablecomponent));
++         event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(mutablecomponent)); // Paper - Adventure
        } else {
 -         return this.f_11196_.size() >= this.f_11193_ && !this.m_5765_(p_11258_) ? new TranslatableComponent("multiplayer.disconnect.server_full") : null;
 -      }
@@ -479,13 +480,13 @@
 -
 +         // return this.players.size() >= this.maxPlayers && !this.canBypassPlayerLimit(p_11258_) ? new TranslatableComponent("multiplayer.disconnect.server_full") : null;
 +         if (this.f_11196_.size() >= this.f_11193_ && !this.m_5765_(p_11258_)) {
-+            event.disallow(PlayerLoginEvent.Result.KICK_FULL, org.spigotmc.SpigotConfig.serverFullMessage); // Spigot
++            event.disallow(PlayerLoginEvent.Result.KICK_FULL, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(org.spigotmc.SpigotConfig.serverFullMessage)); // Spigot // Paper - Adventure
 +         }
 +      }
 +
 +      cserver.getPluginManager().callEvent(event);
 +      if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
-+         serverLoginPacketListener.disconnect(event.getKickMessage());
++         serverLoginPacketListener.m_10053_(PaperAdventure.asVanilla(event.kickMessage())); // Paper - Adventure
 +         return null;
 +      }
 +      return entity;
@@ -1013,7 +1014,7 @@
 -         (this.f_11196_.get(i)).f_8906_.m_9942_(new TranslatableComponent("multiplayer.disconnect.server_shutdown"));
 +      // CraftBukkit start - disconnect safely
 +      for (ServerPlayer player : this.f_11196_) {
-+         player.f_8906_.disconnect(this.f_11195_.server.getShutdownMessage()); // CraftBukkit - add custom shutdown message
++         player.f_8906_.disconnect(this.f_11195_.server.shutdownMessage()); // CraftBukkit - add custom shutdown message // Paper - Adventure
        }
 +      // CraftBukkit end
 +   }

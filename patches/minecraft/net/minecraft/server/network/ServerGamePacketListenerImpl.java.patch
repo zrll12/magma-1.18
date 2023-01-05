@@ -1,17 +1,20 @@
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -1,5 +_,6 @@
+@@ -1,5 +_,7 @@
  package net.minecraft.server.network;
  
 +import co.aikar.timings.MinecraftTimings;
++import com.destroystokyo.paper.youcandfindpaper.PaperConfig;
  import com.google.common.collect.Lists;
  import com.google.common.primitives.Floats;
  import com.mojang.brigadier.ParseResults;
-@@ -7,25 +_,9 @@
+@@ -7,25 +_,11 @@
  import com.mojang.logging.LogUtils;
  import io.netty.util.concurrent.Future;
  import io.netty.util.concurrent.GenericFutureListener;
 -import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
++import io.papermc.paper.adventure.ChatProcessor;
++import io.papermc.paper.adventure.PaperAdventure;
  import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 -import java.util.Collections;
 -import java.util.List;
@@ -112,7 +115,7 @@
  import net.minecraft.world.entity.animal.horse.AbstractHorse;
  import net.minecraft.world.entity.item.ItemEntity;
  import net.minecraft.world.entity.player.ChatVisiblity;
-@@ -118,1340 +_,2501 @@
+@@ -118,1340 +_,2510 @@
  import net.minecraft.world.entity.player.Player;
  import net.minecraft.world.entity.projectile.AbstractArrow;
  import net.minecraft.world.entity.vehicle.Boat;
@@ -543,21 +546,24 @@
 +        return this.f_9745_.m_7779_( this.f_9743_.m_36316_() );
 +    }
 +
-+    // CraftBukkit start
-+    @Deprecated
-+    public void m_9942_(Component p_9943_) {
-+        disconnect(CraftChatMessage.fromComponent(p_9943_));
++    public void disconnect(String s) {
++        // Paper start
++        this.disconnect(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(s));
 +    }
 +
-+    // CraftBukkit end
-+    public void disconnect(String s) {
++    public void m_9942_(final Component p_9943_) {
++        this.disconnect(PaperAdventure.asAdventure(p_9943_));
++    }
++
++    public void disconnect(net.kyori.adventure.text.Component reason) {
++        // Paper end
 +        // CraftBukkit start - fire PlayerKickEvent
 +        if (this.processedDisconnect) {
 +            return;
 +        }
-+        String leaveMessage = ChatFormatting.YELLOW + this.f_9743_.m_6302_() + " left the game.";
++        net.kyori.adventure.text.Component leaveMessage = net.kyori.adventure.text.Component.translatable("multiplayer.player.left", net.kyori.adventure.text.format.NamedTextColor.YELLOW, PaperConfig.useDisplayNameInQuit ? this.f_9743_.getBukkitEntity().displayName() : net.kyori.adventure.text.Component.text(this.f_9743_.m_6302_())); // Paper - Adventure
 +
-+        PlayerKickEvent event = new PlayerKickEvent(this.f_9743_.getBukkitEntity(), s, leaveMessage);
++        PlayerKickEvent event = new PlayerKickEvent(this.f_9743_.getBukkitEntity(), reason, leaveMessage); // Paper - Adventure
 +
 +        if (this.cserver.getServer().m_130010_()) {
 +            this.cserver.getPluginManager().callEvent(event);
@@ -569,8 +575,7 @@
 +        }
 +        this.f_9743_.kickLeaveMessage = event.getLeaveMessage(); // CraftBukkit - SPIGOT-3034: Forward leave message to PlayerQuitEvent
 +        // Send the possibly modified leave message
-+        s = event.getReason();
-+        final Component p_9943_ = CraftChatMessage.fromString(s, true)[0];
++        final Component p_9943_ = PaperAdventure.asVanilla(event.reason()); // Paper - Adventure
 +        // CraftBukkit end
 +
 +        this.f_9742_.m_129514_( new ClientboundDisconnectPacket( p_9943_ ), (p_9828_) -> {
@@ -2864,9 +2869,11 @@
 +        this.server.getPlayerList().broadcastMessage( (new TranslatableComponent( "multiplayer.player.left", this.player.getDisplayName() )).withStyle( ChatFormatting.YELLOW ), ChatType.SYSTEM, Util.NIL_UUID );
 +        */
 +        this.f_9743_.m_9231_();
-+        String quitMessage = this.f_9745_.m_6846_().removeAndReturn(this.f_9743_);
-+        if ((quitMessage != null) && (quitMessage.length() > 0)) {
-+            this.f_9745_.m_6846_().broadcastMessage(CraftChatMessage.fromString(quitMessage));
++        // Paper start - Adventure
++        net.kyori.adventure.text.Component quitMessage = this.f_9745_.m_6846_().removeAndReturn(this.f_9743_);
++        if ((quitMessage != null) && !quitMessage.equals(net.kyori.adventure.text.Component.empty())) {
++            this.f_9745_.m_6846_().m_11264_(PaperAdventure.asVanilla(quitMessage), ChatType.SYSTEM, Util.f_137441_);
++            // Paper end
 +        }
 +        // CraftBukkit end
 +        this.f_9743_.m_8967_().m_7670_();
@@ -3718,29 +3725,29 @@
 +                return;
 +            }
 +
-+            // CraftBukkit start
++            // CraftBukkit start // Paper start - Adventure
 +            org.bukkit.entity.Player player = this.f_9743_.getBukkitEntity();
 +            int x = p_9923_.m_134660_().m_123341_();
 +            int y = p_9923_.m_134660_().m_123342_();
 +            int z = p_9923_.m_134660_().m_123343_();
-+            String[] lines = new String[4];
++            List<net.kyori.adventure.text.Component> lines = new java.util.ArrayList<>();
 +
 +            for (int i = 0; i < p_9924_.size(); ++i) {
-+                TextFilter.FilteredText textfilter$filteredtext = p_9924_.get( i );
++                TextFilter.FilteredText currentLine = p_9924_.get(i);
 +                if (this.f_9743_.m_143387_()) {
-+                    lines[i] = ChatFormatting.m_126649_(new TextComponent(ChatFormatting.m_126649_(textfilter$filteredtext.m_143722_())).getString());
++                    lines.add(net.kyori.adventure.text.Component.text(currentLine.m_143722_()));
 +                } else {
-+                    lines[i] = ChatFormatting.m_126649_(new TextComponent(ChatFormatting.m_126649_(textfilter$filteredtext.m_143719_())).getString());
++                    lines.add(net.kyori.adventure.text.Component.text(currentLine.m_143719_()));
 +                }
 +            }
 +
 +            SignChangeEvent event = new SignChangeEvent((org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock) player.getWorld().getBlockAt(x, y, z), this.f_9743_.getBukkitEntity(), lines);
 +            this.cserver.getPluginManager().callEvent(event);
 +            if (!event.isCancelled()) {
-+                Component[] components = org.bukkit.craftbukkit.v1_18_R2.block.CraftSign.sanitizeLines(event.getLines());
-+                for (int i = 0; i < components.length; i++) {
-+                    signblockentity.m_59732_(i, components[i]);
++                for (int i = 0; i < 4; i++) {
++                    signblockentity.m_59732_(i, PaperAdventure.asVanilla(event.line(i)));
 +                }
++                // Paper end
 +                signblockentity.f_59721_ = false;
 +            }
 +            // CraftBukkit end
@@ -3849,7 +3856,12 @@
 +            this.m_9957_( s );
 +        } else if (this.f_9743_.m_9241_() == ChatVisiblity.SYSTEM) {
 +            // Do nothing, this is coming from a plugin
-+        } else {
++            // Paper start
++        } else if (true) {
++            final ChatProcessor cp = new ChatProcessor(this.f_9745_, this.f_9743_, s, async);
++            cp.process();
++            // Paper end
++        } else if (false) { // Paper
 +            org.bukkit.entity.Player player = this.getCraftPlayer();
 +            AsyncPlayerChatEvent event = new AsyncPlayerChatEvent( async, player, s, new LazyPlayerSet( f_9745_ ) );
 +

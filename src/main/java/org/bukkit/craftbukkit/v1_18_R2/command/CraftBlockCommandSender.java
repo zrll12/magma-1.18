@@ -46,6 +46,13 @@ public class CraftBlockCommandSender extends ServerCommandSender implements Bloc
         return block.getTextName();
     }
 
+    // Paper start
+    @Override
+    public net.kyori.adventure.text.Component name() {
+        return io.papermc.paper.adventure.PaperAdventure.asAdventure(this.block.getDisplayName());
+    }
+    // Paper end
+
     @Override
     public boolean isOp() {
         return true;

@@ -196,6 +196,15 @@ public class PaperConfig {
       return config.getString(path, config.getString(path));
    }
 
+   public static boolean useDisplayNameInQuit = false;
+   private static void useDisplayNameInQuit() {
+      if (version < 21) {
+         boolean oldValue = getBoolean("use-display-name-in-quit-message", useDisplayNameInQuit);
+         set("settings.use-display-name-in-quit-message", oldValue);
+      }
+      useDisplayNameInQuit = getBoolean("settings.use-display-name-in-quit-message", useDisplayNameInQuit);
+   }
+
    public static String timingsServerName;
    private static void timings() {
       boolean timings = getBoolean("timings.enabled", true);

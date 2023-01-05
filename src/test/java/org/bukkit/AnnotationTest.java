@@ -28,6 +28,12 @@ import org.objectweb.asm.tree.ParameterNode;
 public class AnnotationTest {
 
     private static final String[] ACCEPTED_ANNOTATIONS = {
+            // Paper start
+            "Lorg/checkerframework/checker/nullness/qual/Nullable;",
+            "Lorg/checkerframework/checker/nullness/qual/NonNull;",
+            "Lorg/checkerframework/checker/nullness/qual/PolyNull;",
+            "Lorg/checkerframework/checker/nullness/qual/MonotonicNonNull;",
+            // Paper end
             "Lorg/jetbrains/annotations/Nullable;",
             "Lorg/jetbrains/annotations/NotNull;",
             "Lorg/jetbrains/annotations/Contract;",

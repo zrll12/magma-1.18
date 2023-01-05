@@ -16,6 +16,7 @@ public abstract class ServerCommandSender implements CommandSender {
 
     private static PermissibleBase blockPermInst;
     private final PermissibleBase perm;
+    private net.kyori.adventure.pointer.Pointers adventure$pointers; // Paper - implement pointers
 
     public ServerCommandSender() {
         if (this instanceof CraftBlockCommandSender) {
@@ -136,4 +137,17 @@ public abstract class ServerCommandSender implements CommandSender {
         return spigot;
     }
     // Spigot end
+
+    // Paper start - implement pointers
+    @Override
+    public net.kyori.adventure.pointer.Pointers pointers() {
+        if (this.adventure$pointers == null) {
+            this.adventure$pointers = net.kyori.adventure.pointer.Pointers.builder()
+                    .withDynamic(net.kyori.adventure.identity.Identity.DISPLAY_NAME, this::name)
+                    .withStatic(net.kyori.adventure.permission.PermissionChecker.POINTER, this::permissionValue)
+                    .build();
+        }
+        return this.adventure$pointers;
+    }
+    // Paper end
 }

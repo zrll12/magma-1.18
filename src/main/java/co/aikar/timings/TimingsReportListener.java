@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("WeakerAccess")
-public class TimingsReportListener implements MessageCommandSender {
+public class TimingsReportListener implements net.kyori.adventure.audience.ForwardingAudience, MessageCommandSender {
    private final List<CommandSender> senders;
    private final Runnable onDone;
    private String timingsURL;
@@ -58,6 +58,17 @@ public class TimingsReportListener implements MessageCommandSender {
             ((TimingsReportListener) sender).done();
          }
       }
+   }
+
+   @Override
+   public void sendMessage(final @NotNull net.kyori.adventure.identity.Identity source, final @NotNull net.kyori.adventure.text.Component message, final @NotNull net.kyori.adventure.audience.MessageType type) {
+      net.kyori.adventure.audience.ForwardingAudience.super.sendMessage(source, message, type);
+   }
+
+   @NotNull
+   @Override
+   public Iterable<? extends net.kyori.adventure.audience.Audience> audiences() {
+      return this.senders;
    }
 
 

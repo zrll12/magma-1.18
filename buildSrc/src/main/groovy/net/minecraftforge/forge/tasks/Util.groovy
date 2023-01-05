@@ -77,6 +77,9 @@ public class Util {
 					url = "https://raw.github.com/Hexeption/Magma-Repo/master/${path}"
 					if (!checkExists(url)) { // If all else fails use maven central repo
 						url = "https://repo1.maven.org/maven2/${path}"
+						if (!checkExists(url)) { // If all else fails use maven central repo
+							url = "https://papermc.io/repo/repository/maven-public/${path}"
+						}
 					}
 				}
 			}

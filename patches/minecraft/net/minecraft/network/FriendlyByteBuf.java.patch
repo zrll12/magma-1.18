@@ -1,7 +1,10 @@
 --- a/net/minecraft/network/FriendlyByteBuf.java
 +++ b/net/minecraft/network/FriendlyByteBuf.java
-@@ -14,6 +_,20 @@
+@@ -12,8 +_,23 @@
+ import io.netty.handler.codec.DecoderException;
+ import io.netty.handler.codec.EncoderException;
  import io.netty.util.ByteProcessor;
++import io.papermc.paper.adventure.PaperAdventure;
  import it.unimi.dsi.fastutil.ints.IntArrayList;
  import it.unimi.dsi.fastutil.ints.IntList;
 +import net.minecraft.core.BlockPos;
@@ -21,7 +24,7 @@
  import java.io.IOException;
  import java.io.InputStream;
  import java.io.OutputStream;
-@@ -24,35 +_,13 @@
+@@ -24,39 +_,18 @@
  import java.nio.channels.ScatteringByteChannel;
  import java.nio.charset.Charset;
  import java.nio.charset.StandardCharsets;
@@ -59,6 +62,28 @@
     private static final int f_178335_ = 5;
     private static final int f_178336_ = 10;
     private static final int f_178337_ = 2097152;
+    private final ByteBuf f_130049_;
++   public java.util.Locale adventure$locale; // Paper
+    public static final short f_178333_ = 32767;
+    public static final int f_178334_ = 262144;
+ 
+@@ -323,8 +_,15 @@
+       return Component.Serializer.m_130701_(this.m_130136_(262144));
+    }
+ 
++   // Paper start
++   public FriendlyByteBuf writeComponent(final net.kyori.adventure.text.Component component) {
++      return this.m_130072_(PaperAdventure.asJsonString(component, this.adventure$locale), 262144);
++   }
++   // Paper end
++
+    public FriendlyByteBuf m_130083_(Component p_130084_) {
+-      return this.m_130072_(Component.Serializer.m_130703_(p_130084_), 262144);
++      //return this.writeUtf(Component.Serializer.toJson(p_130084_), 262144);
++      return this.m_130072_(PaperAdventure.asJsonString(p_130084_, this.adventure$locale), 262144); // Paper
+    }
+ 
+    public <T extends Enum<T>> T m_130066_(Class<T> p_130067_) {
 @@ -439,7 +_,16 @@
     }
  

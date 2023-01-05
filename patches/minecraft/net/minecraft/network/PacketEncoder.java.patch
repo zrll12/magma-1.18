@@ -1,0 +1,19 @@
+--- a/net/minecraft/network/PacketEncoder.java
++++ b/net/minecraft/network/PacketEncoder.java
+@@ -5,6 +_,8 @@
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.handler.codec.MessageToByteEncoder;
+ import java.io.IOException;
++
++import io.papermc.paper.adventure.PaperAdventure;
+ import net.minecraft.network.protocol.Packet;
+ import net.minecraft.network.protocol.PacketFlow;
+ import net.minecraft.util.profiling.jfr.JvmProfiler;
+@@ -33,6 +_,7 @@
+          } else {
+             FriendlyByteBuf friendlybytebuf = new FriendlyByteBuf(p_130547_);
+             friendlybytebuf.m_130130_(integer);
++            friendlybytebuf.adventure$locale = p_130545_.channel().attr(PaperAdventure.LOCALE_ATTRIBUTE).get(); // Paper
+ 
+             try {
+                int i = friendlybytebuf.writerIndex();
